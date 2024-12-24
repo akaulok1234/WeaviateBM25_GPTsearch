@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abekica's Chat Assistant</title>
+    <style>
+        body {
+            background: linear-gradient(to right, #ADD8E6, #FFFFFF); /* Gradient background */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .container {
+    background-color: #f5f5f5; /* Light grey background color */ 
+    overflow: hidden;
+    width: 80%; /* Set width to 60% of the viewport */
+    height: 80%; /* Set height to 60% of the viewport */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn 1s ease-in-out forwards;
+    border-radius: 20px; /* Add border radius for rounded corners */
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
+}
+
+        .header {
+            background-color: #4682B4; /* Steel blue header */
+            color: rgb(255, 255, 255);
+            font-size: 24px;
+            padding: 10px;
+            text-align: center;
+            position: sticky; /* Position header at the top */
+            top: 0;
+            left: 0;
+            width: 100%;
+        }
+
+        #chatbox {
+            height: calc(100vh - 30px); /* Make chatbox full height of the viewport minus header height */
+            overflow-y: auto; /* Add scrollbar if content exceeds */
+            padding: 5px;
+        }
+
+        #messages {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #messages li {
+            margin-bottom: 5px;
+            animation: fadeInMessage 0.5s ease forwards; /* Add animation for message appearance */
+        }
+
+        @keyframes fadeInMessage {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #messages li:nth-child(odd) {
+            background-color: #87CEFA; /* Light sky blue color */
+            margin-top: 10px;
+            border-radius: 10px;
+            padding: 10px;
+            animation: slideInOdd 0.5s ease forwards; /* Add animation for odd messages */
+        }
+
+        @keyframes slideInOdd {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        #messages li:nth-child(even) {
+            background-color: #ADD8E6; /* Light blue color */
+            border-radius: 10px;
+            padding: 10px;
+            animation: slideInEven 0.5s ease forwards; /* Add animation for even messages */
+        }
+
+        @keyframes slideInEven {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        #user-message, #assistant-message {
+            font-size: 18px;
+            color: white; /* White text color for messages */
+        }
+
+       #chat-form {
+            background-color: #4682B4; /* Steel blue background color for form */
+            padding: 20px;
+            display:flexbox;
+            justify-content: flex-end; 
+            grid-template-columns: 1fr auto; /* Divide the container into two columns */
+            width: 98%;
+            animation: slideIn 1s ease-in-out forwards;
+        }
+
+        #user-input {
+            width: calc(100% - 100px); /* Adjust input field width */
+            padding: 10px;
+            border-radius: 5px;
+            border: none; /* Remove border for input field */
+            background-color: #fff; /* White background color for input field */
+            font-size: 16px;
+            color: #333;
+            
+        }
+
+        button[type="submit"] {
+            padding: 10px;
+            border: none;
+            background-color: #FFA07A; /* Light salmon button color */
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease; /* Add smooth transition for hover effect */
+            font-size: 16px;
+            text-transform: uppercase; /* Uppercase text for button */
+            letter-spacing: 1px; /* Add slight letter spacing for button text */
+                        
+        }
+
+        button[type="submit"]:hover {
+            background-color: #ff917d; /* Darker shade on hover */
+        }
+
+        button[type="submit"]:active {
+            transform: translateY(1px); /* Add slight downward movement on button press */
+        }
+
+        /* Custom cursor for button */
+        button[type="submit"] {
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease; /* Add smooth transitions */
+        }
+
+        /* Custom styles for background graphics */
+        .background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://via.placeholder.com/1500x1000'); /* Replace with your background image */
+            background-size: cover;
+            background-repeat: no-repeat;
+            z-index: -1;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="background"></div>
+    <div class="container">
+        <div class="header">Abekica's Chat Assistant</div>
+        <div id="chatbox">
+            <ul id="messages">
+                <!-- Sample message -->
+                <li style="background-color:#87CEFA;">User: Hello</li>
+                <li style="background-color:#ADD8E6;">Assistant: Hi there! How can I help you?</li>
+            </ul>
+        </div>
+        <form id="chat-form">
+            <input type="text" id="user-input" autocomplete="off" placeholder="Type your message...">
+            <button type="submit">Send</button>
+        </form>
+    </div>
+
+    <script>
+        const messages = document.getElementById('messages');
+        const chatForm = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+
+        function linkify(inputText) {
+            var replacedText, replacePattern1;
+            replacePattern1 = /(\b(https?|ftp):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim;
+            replacedText = inputText.replace(replacePattern1, '<a href="$1" target="_blank">$1</a>');
+            return replacedText;
+        }
+
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const userMessage = userInput.value;
+            userInput.value = '';
+
+            const userMessageItem = document.createElement('li');
+            userMessageItem.style.backgroundColor = '#87CEFA'; // Light sky blue color
+            userMessageItem.innerText = 'User: ' + userMessage;
+            messages.appendChild(userMessageItem);
+
+            fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'message=' + encodeURIComponent(userMessage)
+            })
+            .then(response => response.json())
+            .then(data => {
+                const assistantResponse = data.response;
+                const assistantMessageItem = document.createElement('li');
+                assistantMessageItem.style.backgroundColor = '#ADD8E6'; // Light blue color
+                assistantMessageItem.innerHTML = 'Assistant: ' + linkify(assistantResponse); // Use innerHTML to parse the anchor tags
+                messages.appendChild(assistantMessageItem);
+            });
+        });
+    </script>
+</body>
+</html>
